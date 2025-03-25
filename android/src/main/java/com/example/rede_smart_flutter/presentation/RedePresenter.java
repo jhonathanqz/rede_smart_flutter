@@ -5,17 +5,14 @@ import android.content.Context;
 
 import com.example.rede_smart_flutter.constants.RedePaymentType;
 import com.example.rede_smart_flutter.usecase.PaymentsUsecase;
-import com.example.rede_smart_flutter.usecase.TerminalUsecase;
 
 import rede.smartrede.sdk.api.IRedeSdk;
 
 public class RedePresenter {
     private PaymentsUsecase paymentsUsecase;
-    private TerminalUsecase terminalUsecase;
 
     public RedePresenter(Context context, IRedeSdk sdk) {
         this.paymentsUsecase = new PaymentsUsecase(sdk, context);
-        this.terminalUsecase = new TerminalUsecase(sdk);
     }
 
     public void creditPayment(Activity activity, int amount) {
@@ -48,17 +45,5 @@ public class RedePresenter {
 
     public void reprintTransaction(Activity activity) {
         paymentsUsecase.reprintTransaction(activity);
-    }
-
-    public String getSimCardSerialNumber() {
-        return terminalUsecase.getSimCardSerialNumber();
-    }
-
-    public String getIMEI() {
-        return terminalUsecase.getIMEI();
-    }
-
-    public String getSerialNumber() {
-        return terminalUsecase.getSerialNumber();
     }
 }

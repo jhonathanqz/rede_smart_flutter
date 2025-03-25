@@ -72,4 +72,9 @@ public class RedeResponse {
         this.method = "Print";
         this.status = status;
     }
+
+    public void buildAuthResponse(String status) {
+        this.method = "Auth";
+        this.status = status;
+    }
 }

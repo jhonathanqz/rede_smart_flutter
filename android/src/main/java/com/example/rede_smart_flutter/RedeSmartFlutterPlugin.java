@@ -1,5 +1,6 @@
 package com.example.rede_smart_flutter;
 
+import static com.example.rede_smart_flutter.constants.RedeConstants.AUTH_REQUEST_CODE;
 import static com.example.rede_smart_flutter.constants.RedeConstants.PAYMENT_REQUEST_CODE;
 import static com.example.rede_smart_flutter.constants.RedeConstants.REPRINT_REQUEST_CODE;
 import static com.example.rede_smart_flutter.constants.RedeConstants.REVERSAL_REQUEST_CODE;
@@ -162,6 +163,18 @@ public class RedeSmartFlutterPlugin implements FlutterPlugin, MethodCallHandler,
           _result.success("Operação de reversão cancelada");
         }
       }
+    }
+
+    //Operação de autenticação
+    if (requestCode == AUTH_REQUEST_CODE) {
+      if (resultCode == Activity.RESULT_OK) {
+        redeResponse.buildAuthResponse("Ok");
+      } else if (resultCode == Activity.RESULT_CANCELED) {
+        redeResponse.buildAuthResponse("Canceled");
+        //Toast.makeText(this, “Payment Canceled”, Toast.LENGTH_LONG).show();
+      }
+      String json = getGson().toJson(redeResponse);
+      _result.success(json);
     }
 
 
