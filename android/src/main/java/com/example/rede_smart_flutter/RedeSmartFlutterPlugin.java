@@ -68,7 +68,7 @@ public class RedeSmartFlutterPlugin implements FlutterPlugin, MethodCallHandler,
   public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
     this.activity = binding.getActivity();
     binding.addActivityResultListener(this);
-    Log.d("ClisitefSmartFlutterPlugin", "**** onAttachedToActivity: Listener registrado");
+    Log.d("RedeSmartFlutterPlugin", "**** onAttachedToActivity: Listener registrado");
   }
 
   @Override

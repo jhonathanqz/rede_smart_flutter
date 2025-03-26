@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-
-import 'package:flutter/services.dart';
+import 'package:rede_smart_flutter/payments/enum/rede_payment_type.dart';
 import 'package:rede_smart_flutter/rede_smart_flutter.dart';
 
 void main() {
@@ -16,36 +14,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
   final _redeSmartFlutterPlugin = RedeSmartFlutter();
-
-  @override
-  void initState() {
-    super.initState();
-    initPlatformState();
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
-    try {
-      platformVersion =
-          await _redeSmartFlutterPlugin.getPlatformVersion() ?? 'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,8 +23,77 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+        body: Column(
+          children: [
+            ListTile(
+              title: const Text('Crédito'),
+              onTap: () async {
+                await RedeSmartFlutter().payment.paymentTransaction(
+                      paymentType: RedePaymentType.credit,
+                      amount: 1540,
+                    );
+              },
+            ),
+            ListTile(
+              title: const Text('Débito'),
+              onTap: () async {
+                await _redeSmartFlutterPlugin.payment.paymentTransaction(
+                  paymentType: RedePaymentType.debit,
+                  amount: 1540,
+                );
+              },
+            ),
+            ListTile(
+              title: const Text('Voucher'),
+              onTap: () async {
+                await _redeSmartFlutterPlugin.payment.paymentTransaction(
+                  paymentType: RedePaymentType.voucher,
+                  amount: 1540,
+                );
+              },
+            ),
+            ListTile(
+              title: const Text('PIX'),
+              onTap: () async {
+                await _redeSmartFlutterPlugin.payment.paymentTransaction(
+                  paymentType: RedePaymentType.pix,
+                  amount: 1540,
+                );
+              },
+            ),
+            ListTile(
+              title: const Text('Crédito parcelado consumidor'),
+              onTap: () async {
+                await _redeSmartFlutterPlugin.payment.paymentTransaction(
+                  paymentType: RedePaymentType.creditParcCustomer,
+                  amount: 1540,
+                  installment: 5,
+                );
+              },
+            ),
+            ListTile(
+              title: const Text('Crédito parcelado estabelecimento'),
+              onTap: () async {
+                await _redeSmartFlutterPlugin.payment.paymentTransaction(
+                  paymentType: RedePaymentType.creditParcIssue,
+                  amount: 1540,
+                  installment: 6,
+                );
+              },
+            ),
+            ListTile(
+              title: const Text('Reversão de pagamento'),
+              onTap: () async {
+                await _redeSmartFlutterPlugin.payment.reversalTransaction();
+              },
+            ),
+            ListTile(
+              title: const Text('Reimpressao'),
+              onTap: () async {
+                await _redeSmartFlutterPlugin.payment.reprintTransaction();
+              },
+            ),
+          ],
         ),
       ),
     );
