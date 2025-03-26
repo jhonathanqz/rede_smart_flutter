@@ -59,11 +59,11 @@ public class RedeSmart {
             int amount = call.argument("amount");
             String description = call.argument("description");
 
-            if(call.method.startsWith("Auth")) {
+            if(call.method.startsWith("AuthOnlyPin")) {
                 this.authPresenter.authWithOnlyPin(description, amount);
-            }else if(call.method.startsWith("POSSerialNumber")) {
+            }else if(call.method.startsWith("AuthChangePin")) {
                 this.authPresenter.authWithChangePin(description, amount);
-            }else if(call.method.startsWith("POSIMEI")) {
+            }else if(call.method.startsWith("AuthValueAndPin")) {
                 this.authPresenter.authWithValueAndPin(description, amount);
             } else {
                 result.notImplemented();
