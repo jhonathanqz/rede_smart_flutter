@@ -1,0 +1,99 @@
+plugins {
+    id 'com.android.library' version '8.9.1'
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withInputStream { localProperties.load(it) }
+}
+
+def flutterSdkPath = localProperties.getProperty("flutter.sdk") ?: System.getenv("FLUTTER_SDK")
+if (flutterSdkPath == null || flutterSdkPath.trim().isEmpty()) {
+    throw new GradleException("Flutter SDK não encontrado. Defina flutter.sdk em android/native/local.properties (scripts/build_android_aar.sh faz isso) ou exporte FLUTTER_SDK.")
+}
+
+def flutterEngineDir = file("${flutterSdkPath}/bin/cache/artifacts/engine")
+if (!flutterEngineDir.exists()) {
+    throw new GradleException("Não foi encontrado o diretório de artefatos do Flutter em ${flutterEngineDir}. Execute 'flutter precache' e tente novamente.")
+}
+
+def flutterJar = null
+flutterEngineDir.eachFileRecurse { candidate ->
+    if (candidate.name == "flutter.jar" && flutterJar == null) {
+        flutterJar = candidate
+    }
+}
+
+if (flutterJar == null) {
+    throw new GradleException("Não foi possível localizar flutter.jar. Execute 'flutter precache' ou informe manualmente o caminho.")
+}
+
+group = "br.com.jylabtech.rede_payment_tech"
+version = "1.0.0"
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+android {
+    namespace "br.com.jylabtech.rede_payment_tech"
+    compileSdk = 36
+
+    defaultConfig {
+        minSdk = 28 // exigido pelo smartrede_sdk.aar
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            debuggable true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
+}
+
+dependencies {
+    compileOnly files(flutterJar)
+    // AAR local não pode ser dependência "implementation" de outro AAR; o app recebe o SDK
+    // pelo android/build.gradle do plugin.
+    compileOnly files("../libs/smartrede_sdk.aar")
+    implementation "androidx.security:security-crypto:1.1.0-alpha06"
+    implementation 'androidx.annotation:annotation:1.8.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+    implementation 'androidx.activity:activity-ktx:1.8.2'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.fragment:fragment-ktx:1.6.2'
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0"
+    implementation 'io.insert-koin:koin-android:3.1.0'
+    implementation 'io.insert-koin:koin-core:3.1.0'
+    implementation 'com.google.guava:guava:27.1-android'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    testImplementation 'junit:junit:4.13.2'
+    // MethodChannel.Result (ReplyOnce) nos testes JVM
+    testImplementation files(flutterJar)
+    // org.json do android.jar é stub em testes JVM
+    testImplementation "org.json:json:20240303"
+}
+
+
+

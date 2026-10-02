@@ -7,3 +7,6 @@
 /build
 /captures
 .cxx
+/native/local.properties
+/native/build
+/native/.gradle

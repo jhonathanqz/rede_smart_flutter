@@ -1,4 +1,4 @@
-<h1 align="center">Rede Smart Flutter</h1>
+<h1 align="center">Rede Payment Tech</h1>
 
 <div align="center" id="top"> 
   <img src="https://logodownload.org/wp-content/uploads/2014/07/rede-logo-1-1.png" alt="Fiserv" height=100 />
@@ -9,6 +9,7 @@
   <a href="#dart-sobre">Sobre</a> &#xa0; | &#xa0; 
   <a href="#rocket-tecnologias">Tecnologias</a> &#xa0; | &#xa0;
   <a href="#checkered_flag-configuração">Configuração</a> &#xa0; | &#xa0;
+  <a href="#key-licença">Licença</a> &#xa0; | &#xa0;
   <a href="#memo-autores">Autores</a> &#xa0; | &#xa0;
 </p>
 
@@ -32,22 +33,22 @@ Para adicionar esse plugin no seu projeto Flutter, basta inserir a depêncida no
 
 ### # Pubspec.yaml
 
-Para usar este plugin, adicione `rede_smart_flutter` como [dependência](https://flutter.io/using-packages/) ao seu arquivo `pubspec.yaml`.
+Para usar este plugin, adicione `rede_payment_tech` como [dependência](https://flutter.io/using-packages/) ao seu arquivo `pubspec.yaml`.
 
 ```yaml
 dependencies:
-  rede_smart_flutter: any
+  rede_payment_tech: ^1.0.0
 ```
 
 ### # Build.gradle
 
-Em seu build.gradle a nivel do app, a propriedade `minSdkVersion` precisa ser level 23. Recurso este exigido pelo SDK.
+Em seu build.gradle a nivel do app, a propriedade `minSdkVersion` precisa ser no mínimo 28 (exigido pelo SDK da Rede, `smartrede_sdk`).
 
 ```xml
 ...
 defaultConfig {
         applicationId "com.example.rede_example"
-        minSdkVersion 23
+        minSdkVersion 28
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -57,12 +58,27 @@ defaultConfig {
 
 ### # Implementação
 
-Para começar é necessário criar uma instancia da classe `RedeSmart`.
+Para começar é necessário criar uma instancia da classe `RedeTech` e configurar a licença
+(veja a seção [Licença](#key-licença)) **antes** de chamar qualquer outra função.
+
+```dart
+final redeTech = RedeTech();
+
+try {
+  // licenceInternalKey é opcional: o padrão já é o servidor oficial da JY Labtech.
+  await redeTech.configureLicence(licenceKey: 'SUA_LICENCE_KEY');
+} on PlatformException catch (e) {
+  // e.code == 'LICENCE_ERROR' -> licença inválida, vencida, suspensa ou cancelada
+}
+```
+
+> As chaves ficam armazenadas na instância do plugin nativo (são compartilhadas pelo canal
+> `rede_payment_tech`), então basta configurar uma vez por execução do app.
 
 Função de crédito
 
 ```dart
- await RedeSmartFlutter().payment.paymentTransaction(
+ await RedeTech().payment.paymentTransaction(
                   paymentType: RedePaymentType.credit,
                   amount: 1540,
                 );
@@ -71,7 +87,7 @@ Função de crédito
 Função de débito
 
 ```dart
- await RedeSmartFlutter().payment.paymentTransaction(
+ await RedeTech().payment.paymentTransaction(
                   paymentType: RedePaymentType.debit,
                   amount: 1540,
                 );
@@ -80,7 +96,7 @@ Função de débito
 Função de voucher
 
 ```dart
- await RedeSmartFlutter().payment.paymentTransaction(
+ await RedeTech().payment.paymentTransaction(
                   paymentType: RedePaymentType.voucher,
                   amount: 1540,
                 );
@@ -89,7 +105,7 @@ Função de voucher
 Função de pix
 
 ```dart
- await RedeSmartFlutter().payment.paymentTransaction(
+ await RedeTech().payment.paymentTransaction(
                   paymentType: RedePaymentType.pix,
                   amount: 1540,
                 );
@@ -98,7 +114,7 @@ Função de pix
 Função de crédito parcelado pelo consumidor
 
 ```dart
- await RedeSmartFlutter().payment.paymentTransaction(
+ await RedeTech().payment.paymentTransaction(
                   paymentType: RedePaymentType.creditParcCustomer,
                   amount: 1540,
                   installment: 5,
@@ -108,7 +124,7 @@ Função de crédito parcelado pelo consumidor
 Função de crédito parcelado pelo estabelecimento
 
 ```dart
-    await RedeSmartFlutter().payment.paymentTransaction(
+    await RedeTech().payment.paymentTransaction(
                   paymentType: RedePaymentType.creditParcIssue,
                   amount: 1540,
                   installment: 6,
@@ -118,13 +134,13 @@ Função de crédito parcelado pelo estabelecimento
 Função para reversão de pagamento
 
 ```dart
- await RedeSmartFlutter().payment.reversalTransaction();
+ await RedeTech().payment.reversalTransaction();
 ```
 
 Função para reimprimir
 
 ```dart
- await RedeSmartFlutter().payment.reprintTransaction();
+ await RedeTech().payment.reprintTransaction();
 ```
 
 #### POS
@@ -132,20 +148,138 @@ Função para reimprimir
 Função para obter IMEI do device
 
 ```dart
- await RedeSmartFlutter().pos.getIMEI();
+ await RedeTech().pos.getIMEI();
 ```
 
 Função para obter o número serial do device
 
 ```dart
- await RedeSmartFlutter().pos.getSerialNumber();
+ await RedeTech().pos.getSerialNumber();
 ```
 
 Função para obter número do SIM Card
 
 ```dart
- await RedeSmartFlutter().pos.getSimCardSerialNumber();
+ await RedeTech().pos.getSimCardSerialNumber();
 ```
+
+#### Autenticação
+
+Funções de autenticação do SDK da Rede. `amount` é o **valor da transação em centavos**
+(o SDK da Rede recebe `description` + valor; o PIN é digitado pelo cliente na tela do SDK).
+
+```dart
+ await RedeTech().auth.authWithOnlyPin(description: 'Descrição', amount: 1000);
+ await RedeTech().auth.authWithChangePin(description: 'Descrição', amount: 1000);
+ await RedeTech().auth.authWithValueAndPin(description: 'Descrição', amount: 1000);
+```
+
+> O parâmetro `pin` ainda é aceito por compatibilidade, mas está **obsoleto** (`@Deprecated`):
+> ele sempre foi enviado ao SDK como o valor (`amount`). Migre para `amount`. Informar `amount` e
+> `pin` com valores diferentes, ou nenhum dos dois, lança `ArgumentError`.
+
+## :key: Licença
+
+O uso do plugin exige uma licença JY Labtech.
+
+### Onde adquirir
+
+Adquira e gerencie suas licenças no portal **[portal.jylabtech.com.br](https://portal.jylabtech.com.br)**
+(o login é o mesmo e-mail/senha do portal anterior). O produto é único — **"Licença plugin de
+pagamento"** — e vale para qualquer plugin de pagamento da JY Labtech.
+
+- **Chaves existentes continuam valendo**: não é preciso gerar uma nova `licenceKey`.
+- **Plano `debug`**: concedido automaticamente como cortesia no autocadastro (2 aparelhos, 365 dias).
+- **Plano `mensal`**: cobrado por dispositivo. Aparelhos podem ser desativados pelo portal.
+
+### Parâmetros
+
+| Parâmetro            | Descrição                                                                                                  |
+| -------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `licenceKey`         | Chave da licença obtida no portal (obrigatória).                                                            |
+| `licenceInternalKey` | Opcional. Padrão: constante `licenceCheck` (base64 de `https://licence-server.invalid/pos-payments/licence/check`). |
+
+O plugin **sempre valida a licença no servidor oficial da JY Labtech**
+(`https://licence-server.invalid/pos-payments/licence/check`). Um `licenceInternalKey` que não
+aponte para esse servidor (inclusive o valor antigo, começando com `***REMOVIDO***...`)
+é ignorado e a URL oficial é usada. Não é preciso informá-lo.
+
+### Como a validação funciona
+
+- `configureLicence` registra as chaves e valida a licença online (`POST` com
+  `Authorization: Bearer licence:<licenceKey>` e o identificador do aparelho). Se a licença não for
+  válida, lança `PlatformException` com código `LICENCE_ERROR`.
+- **Toda operação** (pagamentos, estorno, reimpressão, autenticação e dados do POS) verifica a
+  licença antes de chamar o SDK da Rede. Se a licença for inválida, vencida, suspensa ou cancelada,
+  a operação **não é executada** e o `Future` falha com `LICENCE_ERROR`.
+- A licença só é aceita se o servidor responder com sucesso **e** ela estiver ativa: com data de
+  validade futura e não vencida, inativa ou cancelada.
+- **Cache offline**: após uma validação bem-sucedida, o resultado fica salvo de forma criptografada
+  (EncryptedSharedPreferences) e é reutilizado sem rede por até **7 dias**, desde que a licença
+  continue dentro da validade e a `licenceKey` seja a mesma. Cache vencido, de outra chave, salvo
+  com data no futuro (relógio adulterado) ou salvo com uma URL fora do servidor oficial é apagado e a
+  licença é consultada de novo no servidor. Sem internet e sem cache válido, as operações falham com
+  `LICENCE_ERROR`.
+- A consulta ao servidor roda fora da thread principal, com timeout de 15 s para conexão e 15 s
+  para leitura.
+
+### Erros
+
+Erros que podem ocorrer (`PlatformException.code`):
+
+| Código                   | Quando ocorre                                                                                 |
+| ------------------------ | --------------------------------------------------------------------------------------------- |
+| `LICENCE_ERROR`          | Licença inválida ou não foi possível validá-la. A `message` traz o motivo (veja abaixo).      |
+| `INVALID_ARGUMENT`       | `configureLicence` chamado com `licenceKey` vazio, ou operação com `amount`/`installment` ausente, não numérico ou fracionado. |
+| `LICENCE_NOT_CONFIGURED` | Alguma função de pagamento/POS/autenticação foi chamada antes de `configureLicence`.          |
+| `ACTIVITY_NOT_ATTACHED`  | O plugin ainda não está anexado a uma Activity (chame após o app estar em primeiro plano).    |
+| `REDE_APP_NOT_FOUND`     | O aplicativo de pagamentos/autenticação da Rede não foi encontrado no terminal.               |
+| `INVALID_PAYMENT`        | O SDK da Rede recusou os dados do pagamento (ex.: valor ou parcelas inválidos).               |
+| `INVALID_AUTH`           | O SDK da Rede recusou os dados da autenticação (ex.: descrição ou valor inválidos).           |
+| `REDE_SDK_ERROR`         | O SDK da Rede está indisponível ao ler dados do POS (IMEI, número de série, SIM).             |
+| `UNEXPECTED_RESULT`      | O app da Rede voltou sem os dados da transação ou com um resultado desconhecido.              |
+| `OPERATION_REPLACED`     | Uma nova operação com tela da Rede foi iniciada antes de a anterior responder.                |
+| `REDE_ERROR`             | Falha inesperada ao chamar o SDK da Rede (a `message` traz o detalhe).                        |
+
+Toda chamada responde **exatamente uma vez**: com sucesso ou com um dos erros acima. Antes,
+falhas ao abrir o app da Rede eram só registradas em log e o `Future` nunca completava, e
+exceções do SDK na autenticação ou nos dados do POS podiam derrubar o app.
+
+Mensagens de `LICENCE_ERROR` (vêm do servidor quando ele responde com erro):
+
+| Situação                                      | Origem                                                       |
+| --------------------------------------------- | ------------------------------------------------------------ |
+| Licença não encontrada                        | HTTP 404                                                     |
+| Limite de aparelhos atingido / aparelho desativado no portal | HTTP 412                                      |
+| Licença vencida, suspensa ou cancelada        | HTTP 428, ou resposta com licença vencida/inativa/cancelada  |
+| Muitas tentativas                             | HTTP 429                                                     |
+| Aparelho sem identificador estável            | HTTP 400                                                     |
+| Erro interno do servidor                      | HTTP 5xx (`Erro ao validar licença (HTTP <código>)` se não houver mensagem) |
+| Sem conexão / tempo esgotado                  | Falha de rede                                                |
+
+### Solução de problemas
+
+- **`LICENCE_ERROR`**: leia a `message`. Confira no portal
+  [portal.jylabtech.com.br](https://portal.jylabtech.com.br) se a licença está ativa, dentro da
+  validade e se o aparelho não foi desativado ou excedeu o limite. Sem internet, a operação só
+  funciona se houver uma validação bem-sucedida nos últimos 7 dias.
+- **`LICENCE_NOT_CONFIGURED`**: chame `configureLicence` (com `await`) antes de qualquer outra função.
+  Se o app for reiniciado, a configuração precisa ser feita novamente.
+- **`INVALID_ARGUMENT`**: confira se `licenceKey` não está vazio e se `amount`/`installment` foram informados como inteiros (centavos / número de parcelas).
+
+## :test_tube: Testes
+
+```bash
+# Testes Dart (MethodChannel mockado)
+flutter test
+
+# Testes JVM da validação de licença (nativo)
+cd example/android
+./gradlew -p ../../android/native testDebugUnitTest
+```
+
+Para regenerar o binário nativo (`android/libs/rede_payment_tech-native.jar`) após alterar
+`android/native`, execute `scripts/build_android_aar.sh`.
 
 ## :memo: Autores
 

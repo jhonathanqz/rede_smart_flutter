@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
-import 'package:rede_smart_flutter/payments/constants/rede_constants.dart';
-import 'package:rede_smart_flutter/payments/enum/rede_payment_type.dart';
+import 'package:rede_payment_tech/payments/constants/rede_constants.dart';
+import 'package:rede_payment_tech/payments/enum/rede_payment_type.dart';
 
 import 'model/rede_print_response.dart';
 import 'model/rede_transaction_response.dart';
