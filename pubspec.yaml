@@ -1,6 +1,6 @@
-name: rede_smart_flutter
+name: rede_payment_tech
 description: "Integre o Flutter com maquinas smarts da Laranjinha, utilizando o SDK do REDE. Rápido e fácil."
-version: 0.0.1
+version: 1.0.0
 homepage: https://github.com/gabuldev/pagseguro_smart_flutter
 repository: https://github.com/gabuldev/pagseguro_smart_flutter
 
@@ -22,7 +22,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.example.rede_smart_flutter
-        pluginClass: RedeSmartFlutterPlugin
+        package: br.com.jylabtech.rede_payment_tech
+        pluginClass: RedeTechFlutterPlugin
       ios:
-        pluginClass: RedeSmartFlutterPlugin
+        pluginClass: RedeTechFlutterPlugin

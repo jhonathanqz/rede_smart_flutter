@@ -1,4 +1,4 @@
-group = "com.example.rede_smart_flutter"
+group = "br.com.jylabtech.rede_payment_tech"
 version = "1.0"
 
 buildscript {
@@ -8,53 +8,55 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:8.1.0")
+        classpath("com.android.tools.build:gradle:8.9.1")
     }
 }
+
+// SDK da Rede (AAR local) via flatDir: AGP não aceita dependência direta de arquivo .aar
+// ao montar o AAR do plugin, e o app precisa enxergar este diretório para resolvê-lo.
+def redeLibsDir = file("libs")
 
 rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
+        flatDir {
+            dirs redeLibsDir
+        }
     }
 }
 
 apply plugin: "com.android.library"
 
+def nativeJarFiles = fileTree(dir: "libs", include: ["*-native.jar"]).files
+if (nativeJarFiles.isEmpty()) {
+    throw new GradleException("Nenhum artefato nativo encontrado em android/libs. Execute scripts/build_android_aar.sh para gerar o binário.")
+}
+
 android {
-    if (project.android.hasProperty("namespace")) {
-        namespace = "com.example.rede_smart_flutter"
-    }
-
-    compileSdk = 34
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
+    namespace = "br.com.jylabtech.rede_payment_tech"
+    compileSdk = 36
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 28 // exigido pelo smartrede_sdk.aar
     }
 
-    dependencies {
-        testImplementation("junit:junit:4.13.2")
-        testImplementation("org.mockito:mockito-core:5.0.0")
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
+    // Testes JVM da ponte: o delegate nativo cria Handler(Looper.getMainLooper()) no construtor;
+    // os stubs do android.jar devolvem valores padrão em vez de lançar "not mocked".
     testOptions {
-        unitTests.all {
-            testLogging {
-               events "passed", "skipped", "failed", "standardOut", "standardError"
-               outputs.upToDateWhen {false}
-               showStandardStreams = true
-            }
-        }
+        unitTests.returnDefaultValues = true
     }
 }
 
 dependencies {
-    implementation files("libs/smartrede_sdk.aar")
+    implementation fileTree(dir: "libs", include: ["*-native.jar"])
+    implementation(name: "smartrede_sdk", ext: "aar")
+    implementation "androidx.security:security-crypto:1.1.0-alpha06"
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
@@ -62,13 +64,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.fragment:fragment-ktx:1.6.2'
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0"
-
     implementation 'io.insert-koin:koin-android:3.1.0'
     implementation 'io.insert-koin:koin-core:3.1.0'
-
     implementation 'com.google.guava:guava:27.1-android'
     implementation 'com.google.code.gson:gson:2.10.1'
-
     implementation 'org.apache.commons:commons-lang3:3.12.0'
     testImplementation 'junit:junit:4.13.2'
 }

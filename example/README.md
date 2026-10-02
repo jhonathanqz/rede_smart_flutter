@@ -1,6 +1,6 @@
-# rede_smart_flutter_example
+# rede_payment_tech_example
 
-Demonstrates how to use the rede_smart_flutter plugin.
+Demonstrates how to use the rede_payment_tech plugin.
 
 ## Getting Started
 
