@@ -7,6 +7,18 @@ public class LicenceResult {
     private int result = LicenceRules.RESULT_ERROR;
     private String message;
     private CheckLicenceEntity licenceEntity;
+    // true quando o servidor respondeu e recusou a licença de forma definitiva (4xx ou 200 com
+    // licença inutilizável). Nesse caso o cache é apagado e o uso é bloqueado na hora; falhas de
+    // rede, timeout e 5xx ficam false e podem usar o cache offline (até 72h).
+    private boolean rejectedByServer;
+
+    public boolean isRejectedByServer() {
+        return this.rejectedByServer;
+    }
+
+    public void setRejectedByServer(boolean value) {
+        this.rejectedByServer = value;
+    }
 
     public void setLicenceEntity(CheckLicenceEntity entity) {
         this.licenceEntity = entity;

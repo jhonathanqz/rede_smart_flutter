@@ -117,17 +117,45 @@ public class LicenceRulesTest {
     }
 
     @Test
-    public void cacheOlderThan7Days() {
+    public void cacheOlderThan72Hours() {
         CheckLicenceEntity cache = validCache(now);
-        cache.setSavedLocalDatabaseAt(new Date(now.getTime() - TimeUnit.DAYS.toMillis(7) - 1000));
+        cache.setSavedLocalDatabaseAt(new Date(now.getTime() - TimeUnit.HOURS.toMillis(72) - 1000));
         assertFalse(LicenceRules.isCacheValid(cache, LICENCE_KEY, LicenceConfig.LICENCE_CHECK_URL, now));
     }
 
     @Test
-    public void cacheExactly7DaysIsStillValid() {
+    public void cacheExactly72HoursIsStillValid() {
         CheckLicenceEntity cache = validCache(now);
-        cache.setSavedLocalDatabaseAt(new Date(now.getTime() - TimeUnit.DAYS.toMillis(7)));
+        cache.setSavedLocalDatabaseAt(new Date(now.getTime() - TimeUnit.HOURS.toMillis(72)));
         assertTrue(LicenceRules.isCacheValid(cache, LICENCE_KEY, LicenceConfig.LICENCE_CHECK_URL, now));
+    }
+
+    @Test
+    public void cacheOfFourDaysIsNoLongerValid() {
+        CheckLicenceEntity cache = validCache(now);
+        cache.setSavedLocalDatabaseAt(daysFrom(now, -4));
+        assertFalse(LicenceRules.isCacheValid(cache, LICENCE_KEY, LicenceConfig.LICENCE_CHECK_URL, now));
+    }
+
+    @Test
+    public void shouldRevalidateOnFirstCheckOfProcessAndAfterInterval() {
+        CheckLicenceEntity cache = validCache(now);
+        cache.setSavedLocalDatabaseAt(new Date(now.getTime() - TimeUnit.MINUTES.toMillis(10)));
+        assertTrue(LicenceRules.shouldRevalidate(cache, false, now));
+        assertFalse(LicenceRules.shouldRevalidate(cache, true, now));
+        assertTrue(LicenceRules.shouldRevalidate(null, true, now));
+        cache.setSavedLocalDatabaseAt(new Date(now.getTime() - LicenceRules.REVALIDATE_INTERVAL_MS));
+        assertTrue(LicenceRules.shouldRevalidate(cache, true, now));
+    }
+
+    @Test
+    public void definitiveRejectionCodes() {
+        for (int code : new int[]{400, 401, 402, 403, 404, 409, 410, 412, 423, 428}) {
+            assertTrue("HTTP " + code, LicenceRules.isDefinitiveRejection(code));
+        }
+        for (int code : new int[]{200, 301, 408, 429, 500, 502, 503, 504}) {
+            assertFalse("HTTP " + code, LicenceRules.isDefinitiveRejection(code));
+        }
     }
 
     @Test

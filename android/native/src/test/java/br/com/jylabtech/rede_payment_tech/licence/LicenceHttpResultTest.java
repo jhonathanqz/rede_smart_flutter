@@ -2,7 +2,9 @@ package br.com.jylabtech.rede_payment_tech.licence;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -86,6 +88,29 @@ public class LicenceHttpResultTest {
                 LicenceRules.decideHttpResult(503, "<html>Bad gateway</html>", now).getErrorMessage());
         assertEquals("Erro ao validar licença (HTTP 404)",
                 LicenceRules.decideHttpResult(404, "{\"message\":null}", now).getErrorMessage());
+    }
+
+    @Test
+    public void refusalsAreDefinitiveAndOutagesAreNot() {
+        for (int code : new int[]{404, 412, 428, 403, 400}) {
+            assertTrue("HTTP " + code, LicenceRules.decideHttpResult(code, "{\"message\":\"x\"}", now).isRejectedByServer());
+        }
+        for (int code : new int[]{408, 429, 500, 502, 503}) {
+            assertFalse("HTTP " + code, LicenceRules.decideHttpResult(code, "{\"message\":\"x\"}", now).isRejectedByServer());
+        }
+        assertTrue(LicenceRules.decideHttpResult(200, json("2099-12-31T23:59:59", false, false, true), now).isRejectedByServer());
+        assertTrue(LicenceRules.decideHttpResult(200, json("2020-01-01T00:00:00", false, false, false), now).isRejectedByServer());
+        assertFalse(LicenceRules.decideHttpResult(200, json("2099-12-31T23:59:59", false, false, false), now).isRejectedByServer());
+        // corpo ilegível (proxy/captive portal) não é recusa da licença
+        assertFalse(LicenceRules.decideHttpResult(200, "<html>oops</html>", now).isRejectedByServer());
+    }
+
+    @Test
+    public void customerBlockedReasonHasClearMessage() {
+        LicenceResult result = LicenceRules.decideHttpResult(428,
+                "{\"message\":\"A data de expiração da licença é inválida. [-]\",\"reason\":\"customer_blocked\"}", now);
+        assertTrue(result.isRejectedByServer());
+        assertEquals("Cliente bloqueado. Entre em contato com a JY Labtech.", result.getErrorMessage());
     }
 
     @Test
