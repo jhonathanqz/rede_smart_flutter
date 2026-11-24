@@ -30,7 +30,7 @@ if (flutterJar == null) {
 }
 
 group = "br.com.jylabtech.rede_payment_tech"
-version = "1.0.0"
+version = "1.1.0"
 
 repositories {
     google()
