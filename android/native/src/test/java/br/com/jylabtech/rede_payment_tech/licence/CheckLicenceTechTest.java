@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class CheckLicenceTechTest {
 
@@ -47,7 +48,10 @@ public class CheckLicenceTechTest {
         }
     }
 
-    private final Date now = new Date();
+    private static final String VALID_JSON = LicenceTestData.coreJson("2099-12-31T23:59:59", false, false, false);
+
+    private final Date start = new Date();
+    private Date now = start;
     private FakeStorage storage;
     private FakeNetwork network;
     private CheckLicenceTech tech;
@@ -59,13 +63,161 @@ public class CheckLicenceTechTest {
         tech = new CheckLicenceTech(network, storage, () -> now);
     }
 
+    private void advance(long millis) {
+        now = new Date(now.getTime() + millis);
+    }
+
+    private LicenceResult validate() {
+        return tech.validateLicence(LICENCE_KEY, LicenceConfig.LICENCE_CHECK_URL);
+    }
+
     @Test
-    public void validCacheSkipsNetwork() {
+    public void firstCheckOfProcessGoesOnlineEvenWithValidCache() {
         storage.stored = validCache(now);
-        LicenceResult result = tech.validateLicence(LICENCE_KEY, LicenceConfig.LICENCE_CHECK_URL);
-        assertEquals(LicenceRules.RESULT_SUCCESS, result.getResult());
-        assertTrue(network.urls.isEmpty());
+        network.body = VALID_JSON;
+        assertEquals(LicenceRules.RESULT_SUCCESS, validate().getResult());
+        assertEquals(1, network.urls.size());
+        assertEquals(now, storage.stored.getSavedLocalDatabaseAt());
+    }
+
+    @Test
+    public void validCacheSkipsNetworkAfterOnlineCheckUntilRevalidationInterval() {
+        network.body = VALID_JSON;
+        validate();
+        assertEquals(1, network.urls.size());
+
+        advance(TimeUnit.HOURS.toMillis(1));
+        assertEquals(LicenceRules.RESULT_SUCCESS, validate().getResult());
+        assertEquals(1, network.urls.size());
         assertTrue(tech.validateExistsLicence(LICENCE_KEY, LicenceConfig.LICENCE_CHECK_URL));
+
+        advance(LicenceRules.REVALIDATE_INTERVAL_MS);
+        assertEquals(LicenceRules.RESULT_SUCCESS, validate().getResult());
+        assertEquals(2, network.urls.size());
+    }
+
+    @Test
+    public void cacheOnlyShortcutRequiresOnlineCheckInThisProcess() {
+        storage.stored = validCache(now);
+        // app recém-aberto: o atalho sem rede não libera, força a consulta ao servidor
+        assertFalse(tech.validateExistsLicence(LICENCE_KEY, LicenceConfig.LICENCE_CHECK_URL));
+        assertNotNull(storage.stored);
+
+        network.body = VALID_JSON;
+        validate();
+        assertTrue(tech.validateExistsLicence(LICENCE_KEY, LicenceConfig.LICENCE_CHECK_URL));
+
+        advance(LicenceRules.REVALIDATE_INTERVAL_MS);
+        assertFalse(tech.validateExistsLicence(LICENCE_KEY, LicenceConfig.LICENCE_CHECK_URL));
+
+        // servidor fora do ar: o atalho libera pelo cache durante a espera entre tentativas
+        network.error = new IOException("sem internet");
+        assertEquals(LicenceRules.RESULT_SUCCESS, validate().getResult());
+        assertTrue(tech.validateExistsLicence(LICENCE_KEY, LicenceConfig.LICENCE_CHECK_URL));
+    }
+
+    @Test
+    public void customerBlockedClearsCacheAndBlocksImmediately() {
+        network.body = VALID_JSON;
+        validate();
+        advance(LicenceRules.REVALIDATE_INTERVAL_MS);
+        network.status = 428;
+        network.body = "{\"message\":\"A data de expiração da licença é inválida. [-]\",\"reason\":\"customer_blocked\"}";
+
+        LicenceResult result = validate();
+        assertEquals(LicenceRules.RESULT_ERROR, result.getResult());
+        assertTrue(result.isRejectedByServer());
+        assertNull(storage.stored);
+        // sem cache: a próxima operação também consulta o servidor e continua bloqueada
+        assertEquals(LicenceRules.RESULT_ERROR, validate().getResult());
+        assertEquals(3, network.urls.size());
+    }
+
+    @Test
+    public void everyDefinitiveRefusalClearsValidCache() {
+        for (int code : new int[]{404, 412, 428, 403, 400}) {
+            setUp();
+            storage.stored = validCache(now);
+            network.status = code;
+            network.body = "{\"message\":\"recusada\"}";
+            LicenceResult result = validate();
+            assertEquals("HTTP " + code, LicenceRules.RESULT_ERROR, result.getResult());
+            assertEquals("recusada", result.getErrorMessage());
+            assertNull("HTTP " + code, storage.stored);
+        }
+    }
+
+    @Test
+    public void online200CanceledClearsValidCache() {
+        storage.stored = validCache(now);
+        network.body = LicenceTestData.coreJson("2099-12-31T23:59:59", false, false, true);
+        assertEquals(LicenceRules.RESULT_ERROR, validate().getResult());
+        assertNull(storage.stored);
+    }
+
+    @Test
+    public void outageUsesCacheUpTo72Hours() {
+        network.body = VALID_JSON;
+        validate();
+        network.error = new IOException("sem internet");
+
+        advance(TimeUnit.HOURS.toMillis(71));
+        assertEquals(LicenceRules.RESULT_SUCCESS, validate().getResult());
+        assertNotNull(storage.stored);
+
+        advance(TimeUnit.HOURS.toMillis(1) + 1000);
+        LicenceResult result = validate();
+        assertEquals(LicenceRules.RESULT_ERROR, result.getResult());
+        assertTrue(result.getErrorMessage().contains("sem internet"));
+        assertNull(storage.stored);
+    }
+
+    @Test
+    public void serverErrorsUseCache() {
+        for (int code : new int[]{500, 502, 503, 408, 429}) {
+            setUp();
+            storage.stored = validCache(now);
+            network.status = code;
+            network.body = "{\"message\":\"fora do ar\"}";
+            assertEquals("HTTP " + code, LicenceRules.RESULT_SUCCESS, validate().getResult());
+            assertNotNull("HTTP " + code, storage.stored);
+        }
+    }
+
+    @Test
+    public void unreadable200UsesCache() {
+        storage.stored = validCache(now);
+        network.body = "<html>captive portal</html>";
+        assertEquals(LicenceRules.RESULT_SUCCESS, validate().getResult());
+        assertNotNull(storage.stored);
+    }
+
+    @Test
+    public void afterOutageWaitsBeforeRetryingServer() {
+        storage.stored = validCache(now);
+        network.error = new IOException("sem internet");
+        validate();
+        assertEquals(1, network.urls.size());
+
+        advance(TimeUnit.MINUTES.toMillis(1));
+        assertEquals(LicenceRules.RESULT_SUCCESS, validate().getResult());
+        assertEquals(1, network.urls.size());
+
+        advance(LicenceRules.RETRY_AFTER_FAILURE_MS);
+        network.error = null;
+        network.status = 428;
+        network.body = "{\"message\":\"Licença vencida\"}";
+        assertEquals(LicenceRules.RESULT_ERROR, validate().getResult());
+        assertEquals(2, network.urls.size());
+        assertNull(storage.stored);
+    }
+
+    @Test
+    public void outageWithoutCacheBlocksAndKeepsTrying() {
+        network.error = new IOException("sem internet");
+        assertEquals(LicenceRules.RESULT_ERROR, validate().getResult());
+        assertEquals(LicenceRules.RESULT_ERROR, validate().getResult());
+        assertEquals(2, network.urls.size());
     }
 
     @Test
@@ -168,7 +320,7 @@ public class CheckLicenceTechTest {
         assertEquals(1, storage.deletes);
         assertEquals(1, network.urls.size());
         assertEquals(LicenceConfig.LICENCE_CHECK_URL, network.urls.get(0));
-        // o cache novo guarda a URL oficial, então a próxima chamada não vai à rede
+        // o cache novo guarda a URL oficial, então a próxima chamada (já validada online) não vai à rede
         assertEquals(LicenceConfig.LICENCE_CHECK_URL, storage.stored.getLicenceInternalKey());
         tech.validateLicence(LICENCE_KEY, b64(OLD_CLOUD_RUN_URL));
         assertEquals(1, network.urls.size());
@@ -179,9 +331,10 @@ public class CheckLicenceTechTest {
         CheckLicenceEntity cache = validCache(now);
         cache.setLicenceInternalKey(b64(LicenceConfig.LICENCE_CHECK_URL));
         storage.stored = cache;
+        network.error = new IOException("sem internet");
         LicenceResult result = tech.validateLicence(LICENCE_KEY, b64(LicenceConfig.LICENCE_CHECK_URL));
         assertEquals(LicenceRules.RESULT_SUCCESS, result.getResult());
-        assertTrue(network.urls.isEmpty());
+        assertEquals(1, network.urls.size());
         assertEquals(0, storage.deletes);
     }
 

@@ -13,8 +13,17 @@ public final class LicenceRules {
     public static final int RESULT_SUCCESS = 0;
     public static final int RESULT_ERROR = 999999;
 
-    /** Validade máxima do cache offline sem nova consulta ao servidor. */
-    public static final long CACHE_MAX_AGE_MS = TimeUnit.DAYS.toMillis(7);
+    /**
+     * Validade máxima do cache offline sem nova consulta bem-sucedida ao servidor (contrato de
+     * licenças do jylabtech_core: no máximo 72h; igual ao TTL do token assinado).
+     */
+    public static final long CACHE_MAX_AGE_MS = TimeUnit.HOURS.toMillis(72);
+    /** Com cache válido, consulta o servidor de novo depois deste intervalo (em uso). */
+    public static final long REVALIDATE_INTERVAL_MS = TimeUnit.HOURS.toMillis(4);
+    /** Depois de uma falha de rede, espera este tempo antes de tentar o servidor de novo (usa o cache). */
+    public static final long RETRY_AFTER_FAILURE_MS = TimeUnit.MINUTES.toMillis(5);
+    /** Motivo do core para cliente bloqueado/banido (bloqueio total imediato). */
+    public static final String REASON_CUSTOMER_BLOCKED = "customer_blocked";
     /** Tolerância para relógio do aparelho atrasado em relação ao momento em que o cache foi salvo. */
     public static final long CLOCK_SKEW_TOLERANCE_MS = TimeUnit.MINUTES.toMillis(5);
 
@@ -43,7 +52,29 @@ public final class LicenceRules {
     }
 
     /**
-     * O cache offline só vale se a licença for utilizável, tiver sido salva há no máximo 7 dias
+     * Indica se uma resposta HTTP diferente de 200 é uma recusa definitiva do servidor (licença
+     * não encontrada, vencida, cancelada, suspensa, cliente bloqueado, aparelho desativado, limite
+     * de aparelhos, requisição inválida). 408, 429, 5xx e outros códigos são tratados como falha
+     * temporária (servidor fora do ar), que pode usar o cache offline.
+     */
+    public static boolean isDefinitiveRejection(int statusCode) {
+        return statusCode >= 400 && statusCode < 500 && statusCode != 408 && statusCode != 429;
+    }
+
+    /**
+     * Indica se é hora de consultar o servidor: sem cache, na primeira validação deste processo
+     * (abertura do app) ou quando a última consulta online tem mais de {@link #REVALIDATE_INTERVAL_MS}.
+     */
+    public static boolean shouldRevalidate(CheckLicenceEntity cache, boolean checkedOnlineInThisProcess, Date now) {
+        if (cache == null || !checkedOnlineInThisProcess || now == null) {
+            return true;
+        }
+        Date savedAt = cache.getSavedLocalDatabaseAt();
+        return savedAt == null || now.getTime() - savedAt.getTime() >= REVALIDATE_INTERVAL_MS;
+    }
+
+    /**
+     * O cache offline só vale se a licença for utilizável, tiver sido salva há no máximo 72h
      * (e não no futuro, além da tolerância), pertencer à mesma licenceKey e ter sido salvo com a
      * URL oficial, igual à URL resolvida atual.
      */
@@ -86,6 +117,8 @@ public final class LicenceRules {
             if (reason != null) {
                 result.setResult(RESULT_ERROR);
                 result.setErrorMessage(reason);
+                // Corpo ilegível (ex.: página de erro de proxy) não é recusa da licença.
+                result.setRejectedByServer(entity != null);
                 return result;
             }
             result.setResult(RESULT_SUCCESS);
@@ -94,6 +127,7 @@ public final class LicenceRules {
         }
 
         result.setResult(RESULT_ERROR);
+        result.setRejectedByServer(isDefinitiveRejection(statusCode));
         result.setErrorMessage(extractErrorMessage(statusCode, body));
         return result;
     }
@@ -105,6 +139,9 @@ public final class LicenceRules {
         }
         try {
             JSONObject json = new JSONObject(body);
+            if (REASON_CUSTOMER_BLOCKED.equals(json.optString("reason", ""))) {
+                return "Cliente bloqueado. Entre em contato com a JY Labtech.";
+            }
             if (json.has("message") && !json.isNull("message")) {
                 String message = json.optString("message", "").trim();
                 if (!message.isEmpty()) {

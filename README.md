@@ -214,12 +214,18 @@ aponte para esse servidor (inclusive o valor antigo, começando com `***REMOVIDO
   a operação **não é executada** e o `Future` falha com `LICENCE_ERROR`.
 - A licença só é aceita se o servidor responder com sucesso **e** ela estiver ativa: com data de
   validade futura e não vencida, inativa ou cancelada.
+- **Revalidação**: a primeira operação depois de abrir o app sempre consulta o servidor; depois,
+  a licença é consultada de novo a cada **4 horas** de uso.
+- **Bloqueio imediato**: se o servidor recusar a licença (cliente bloqueado no portal, licença
+  vencida, cancelada ou suspensa, não encontrada, aparelho desativado ou limite de aparelhos), o
+  cache é apagado e as operações passam a falhar com `LICENCE_ERROR` na hora.
 - **Cache offline**: após uma validação bem-sucedida, o resultado fica salvo de forma criptografada
-  (EncryptedSharedPreferences) e é reutilizado sem rede por até **7 dias**, desde que a licença
-  continue dentro da validade e a `licenceKey` seja a mesma. Cache vencido, de outra chave, salvo
-  com data no futuro (relógio adulterado) ou salvo com uma URL fora do servidor oficial é apagado e a
-  licença é consultada de novo no servidor. Sem internet e sem cache válido, as operações falham com
-  `LICENCE_ERROR`.
+  (EncryptedSharedPreferences). Ele só é usado quando o servidor não responde (sem internet,
+  timeout ou erro 5xx) e por no máximo **72 horas** desde a última validação online, desde que a
+  licença continue dentro da validade e a `licenceKey` seja a mesma. Depois de uma falha de rede o
+  plugin espera 5 minutos antes de tentar o servidor de novo. Cache vencido, de outra chave, salvo
+  com data no futuro (relógio adulterado) ou salvo com uma URL fora do servidor oficial é apagado.
+  Sem internet e sem cache válido, as operações falham com `LICENCE_ERROR`.
 - A consulta ao servidor roda fora da thread principal, com timeout de 15 s para conexão e 15 s
   para leitura.
 
@@ -262,7 +268,7 @@ Mensagens de `LICENCE_ERROR` (vêm do servidor quando ele responde com erro):
 - **`LICENCE_ERROR`**: leia a `message`. Confira no portal
   [portal.jylabtech.com.br](https://portal.jylabtech.com.br) se a licença está ativa, dentro da
   validade e se o aparelho não foi desativado ou excedeu o limite. Sem internet, a operação só
-  funciona se houver uma validação bem-sucedida nos últimos 7 dias.
+  funciona se houver uma validação bem-sucedida nas últimas 72 horas.
 - **`LICENCE_NOT_CONFIGURED`**: chame `configureLicence` (com `await`) antes de qualquer outra função.
   Se o app for reiniciado, a configuração precisa ser feita novamente.
 - **`INVALID_ARGUMENT`**: confira se `licenceKey` não está vazio e se `amount`/`installment` foram informados como inteiros (centavos / número de parcelas).
