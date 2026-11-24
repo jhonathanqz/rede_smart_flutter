@@ -37,7 +37,7 @@ Para usar este plugin, adicione `rede_payment_tech` como [dependência](https://
 
 ```yaml
 dependencies:
-  rede_payment_tech: ^1.1.0
+  rede_payment_tech: ^1.1.1
 ```
 
 ### # Build.gradle

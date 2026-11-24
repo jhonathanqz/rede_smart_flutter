@@ -1,3 +1,7 @@
+## 1.1.1
+
+- Primeira publicação no pub.dev: licença proprietária da JYLabtech (`LICENSE`), `homepage`/`repository` apontando para o repositório do plugin e `.pubignore` (o pacote leva só o binário nativo de `android/libs`, sem o código-fonte de `android/native`).
+
 ## 1.1.0
 
 - Licença conforme o contrato do jylabtech_core (JYN-234): o cache offline vale por no máximo 72 horas (antes 7 dias) e só é usado quando o servidor não responde (sem internet, timeout, 5xx).
