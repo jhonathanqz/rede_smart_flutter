@@ -21,8 +21,6 @@ public class RedeTech {
     private AuthPresenter authPresenter;
 
     private IRedeSdk redeSdk;
-    private String licenceKey;
-    private String licenceInternalKey;
 
     public RedeTech(Context context, MethodChannel channel, Activity activity) {
         this.mChannel = channel;
@@ -50,11 +48,6 @@ public class RedeTech {
     }
 
     private void dispatch(MethodCall call, MethodChannel.Result result) {
-        if (!isLicenceConfigured()) {
-            result.error("LICENCE_NOT_CONFIGURED", "Configure a licença chamando configureLicence antes de usar o SDK.", null);
-            return;
-        }
-
         if (call.method.startsWith("POS")) {
             if(this.terminalPresenter == null) {
                 this.terminalPresenter = new TerminalPresenter(this.redeSdk);
@@ -150,15 +143,5 @@ public class RedeTech {
         }else {
             result.notImplemented();
         }
-    }
-
-    public void updateLicenceKeys(String licenceKey, String licenceInternalKey) {
-        this.licenceKey = licenceKey;
-        this.licenceInternalKey = licenceInternalKey;
-    }
-
-    public boolean isLicenceConfigured() {
-        // licenceInternalKey é opcional: vazio usa a URL padrão do servidor oficial.
-        return licenceKey != null && !licenceKey.trim().isEmpty();
     }
 }

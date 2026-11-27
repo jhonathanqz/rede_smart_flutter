@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:rede_payment_tech/payments/enum/rede_payment_type.dart';
+import 'package:flutter/services.dart';
 import 'package:rede_payment_tech/rede_payment_tech.dart';
-
-// Chave adquirida em https://portal.jylabtech.com.br. Informe via
-// `flutter run --dart-define=LICENCE_KEY=...` (não versione chaves reais).
-const String kLicenceKey =
-    String.fromEnvironment('LICENCE_KEY', defaultValue: 'SUA_LICENCE_KEY');
 
 void main() {
   runApp(const MyApp());
@@ -19,100 +14,105 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final _redeTechFlutterPlugin = RedeTech();
+  final _redeTech = RedeTech();
+  String _lastResult = 'Nenhuma operação executada';
 
-  @override
-  void initState() {
-    super.initState();
-    _configureLicence();
+  /// Executa a operação e mostra o resultado (ou o erro) na tela.
+  Future<void> _run(String label, Future<Object?> Function() operation) async {
+    setState(() => _lastResult = '$label: aguardando...');
+    try {
+      final result = await operation();
+      setState(() => _lastResult = '$label: $result');
+    } on PlatformException catch (e) {
+      setState(() => _lastResult = '$label: erro ${e.code} - ${e.message}');
+    } catch (e) {
+      setState(() => _lastResult = '$label: erro $e');
+    }
   }
 
-  Future<void> _configureLicence() async {
-    try {
-      await _redeTechFlutterPlugin.configureLicence(
-        licenceKey: kLicenceKey,
-      );
-    } catch (e) {
-      debugPrint('Erro ao configurar licença: $e');
-    }
+  Widget _tile(String label, Future<Object?> Function() operation) {
+    return ListTile(
+      title: Text(label),
+      onTap: () => _run(label, operation),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final payment = _redeTech.payment;
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('Rede Payment Tech'),
         ),
         body: Column(
           children: [
-            ListTile(
-              title: const Text('Crédito'),
-              onTap: () async {
-                await _redeTechFlutterPlugin.payment.paymentTransaction(
-                  paymentType: RedePaymentType.credit,
-                  amount: 1540,
-                );
-              },
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(_lastResult, key: const Key('lastResult')),
             ),
-            ListTile(
-              title: const Text('Débito'),
-              onTap: () async {
-                await _redeTechFlutterPlugin.payment.paymentTransaction(
-                  paymentType: RedePaymentType.debit,
-                  amount: 1540,
-                );
-              },
-            ),
-            ListTile(
-              title: const Text('Voucher'),
-              onTap: () async {
-                await _redeTechFlutterPlugin.payment.paymentTransaction(
-                  paymentType: RedePaymentType.voucher,
-                  amount: 1540,
-                );
-              },
-            ),
-            ListTile(
-              title: const Text('PIX'),
-              onTap: () async {
-                await _redeTechFlutterPlugin.payment.paymentTransaction(
-                  paymentType: RedePaymentType.pix,
-                  amount: 1540,
-                );
-              },
-            ),
-            ListTile(
-              title: const Text('Crédito parcelado consumidor'),
-              onTap: () async {
-                await _redeTechFlutterPlugin.payment.paymentTransaction(
-                  paymentType: RedePaymentType.creditParcCustomer,
-                  amount: 1540,
-                  installment: 5,
-                );
-              },
-            ),
-            ListTile(
-              title: const Text('Crédito parcelado estabelecimento'),
-              onTap: () async {
-                await _redeTechFlutterPlugin.payment.paymentTransaction(
-                  paymentType: RedePaymentType.creditParcIssue,
-                  amount: 1540,
-                  installment: 6,
-                );
-              },
-            ),
-            ListTile(
-              title: const Text('Reversão de pagamento'),
-              onTap: () async {
-                await _redeTechFlutterPlugin.payment.reversalTransaction();
-              },
-            ),
-            ListTile(
-              title: const Text('Reimpressao'),
-              onTap: () async {
-                await _redeTechFlutterPlugin.payment.reprintTransaction();
-              },
+            const Divider(),
+            Expanded(
+              child: ListView(
+                children: [
+                  _tile(
+                    'Crédito',
+                    () => payment.paymentTransaction(
+                      paymentType: RedePaymentType.credit,
+                      amount: 1540,
+                    ),
+                  ),
+                  _tile(
+                    'Débito',
+                    () => payment.paymentTransaction(
+                      paymentType: RedePaymentType.debit,
+                      amount: 1540,
+                    ),
+                  ),
+                  _tile(
+                    'Voucher',
+                    () => payment.paymentTransaction(
+                      paymentType: RedePaymentType.voucher,
+                      amount: 1540,
+                    ),
+                  ),
+                  _tile(
+                    'PIX',
+                    () => payment.paymentTransaction(
+                      paymentType: RedePaymentType.pix,
+                      amount: 1540,
+                    ),
+                  ),
+                  _tile(
+                    'Crédito parcelado consumidor',
+                    () => payment.paymentTransaction(
+                      paymentType: RedePaymentType.creditParcCustomer,
+                      amount: 1540,
+                      installment: 5,
+                    ),
+                  ),
+                  _tile(
+                    'Crédito parcelado estabelecimento',
+                    () => payment.paymentTransaction(
+                      paymentType: RedePaymentType.creditParcIssue,
+                      amount: 1540,
+                      installment: 6,
+                    ),
+                  ),
+                  _tile('Reversão de pagamento', payment.reversalTransaction),
+                  _tile('Reimpressão', payment.reprintTransaction),
+                  _tile(
+                    'Autenticação (só PIN)',
+                    () => _redeTech.auth.authWithOnlyPin(
+                      description: 'Autenticação',
+                      amount: 1000,
+                    ),
+                  ),
+                  _tile('IMEI', _redeTech.pos.getIMEI),
+                  _tile('Número de série', _redeTech.pos.getSerialNumber),
+                  _tile('SIM card', _redeTech.pos.getSimCardSerialNumber),
+                ],
+              ),
             ),
           ],
         ),

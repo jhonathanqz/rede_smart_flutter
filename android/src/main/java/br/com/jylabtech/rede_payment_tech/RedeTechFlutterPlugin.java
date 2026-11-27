@@ -14,7 +14,8 @@ import io.flutter.plugin.common.PluginRegistry;
 
 /**
  * Classe ponte que delega a implementação nativa real para {@link RedePaymentTechNativePlugin}.
- * Isso permite manter o código sensível compilado em um AAR/JAR separado.
+ * O delegate vem pré-compilado em {@code android/libs/rede_payment_tech-native.jar}, gerado a
+ * partir do código-fonte em {@code android/native} por {@code scripts/build_android_aar.sh}.
  */
 public final class RedeTechFlutterPlugin implements FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware, PluginRegistry.ActivityResultListener {
 

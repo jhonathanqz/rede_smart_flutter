@@ -21,6 +21,8 @@ public final class RedeOperationException extends RuntimeException {
     /** Uma nova operação com tela da Rede começou antes de a anterior responder. */
     public static final String OPERATION_REPLACED = "OPERATION_REPLACED";
     public static final String ACTIVITY_NOT_ATTACHED = "ACTIVITY_NOT_ATTACHED";
+    /** Pagamento/estorno cancelado e o app da Rede não devolveu dados da transação. */
+    public static final String CANCELED = "CANCELED";
 
     private final String code;
 

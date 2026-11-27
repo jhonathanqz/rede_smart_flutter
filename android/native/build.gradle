@@ -30,7 +30,7 @@ if (flutterJar == null) {
 }
 
 group = "br.com.jylabtech.rede_payment_tech"
-version = "1.1.1"
+version = "2.0.0"
 
 repositories {
     google()
@@ -74,7 +74,6 @@ dependencies {
     // AAR local não pode ser dependência "implementation" de outro AAR; o app recebe o SDK
     // pelo android/build.gradle do plugin.
     compileOnly files("../libs/smartrede_sdk.aar")
-    implementation "androidx.security:security-crypto:1.1.0-alpha06"
     implementation 'androidx.annotation:annotation:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'com.google.android.material:material:1.11.0'
@@ -91,8 +90,6 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     // MethodChannel.Result (ReplyOnce) nos testes JVM
     testImplementation files(flutterJar)
-    // org.json do android.jar é stub em testes JVM
-    testImplementation "org.json:json:20240303"
 }
 
 

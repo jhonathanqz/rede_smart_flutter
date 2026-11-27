@@ -1,28 +1,33 @@
-# Excluir implementação nativa completa do pacote publicado
-android/native/
+# O .pubignore substitui o .gitignore na publicação: repetir aqui o que não deve ir para o pacote.
+# O código-fonte de android/native é publicado (open source); os binários de android/libs também,
+# pois são eles que o build do plugin usa.
 
-# Arquivos locais sensíveis
-android/local.properties
+# Segredos e arquivos locais
+example/Chaves/
+*.jks
+*.keystore
+**/local.properties
+local.properties
+key.properties
+senha.txt
+.env*
 
-
-# O .pubignore substitui o .gitignore na publicação: repetir aqui o que não deve ir para o pacote
+# Gerados
 .dart_tool/
 build/
+**/build/
 .gradle/
+**/.gradle/
 .idea/
+**/.idea/
 .cxx/
 *.iml
 .DS_Store
 .flutter-plugins
 .flutter-plugins-dependencies
-local.properties
-key.properties
-*.jks
-*.keystore
-.env*
 *.hprof
 .fvm/
 fvm*
-doc/api/
+doc/
 pubspec.lock
 example/ios/Flutter/ephemeral/

@@ -1,3 +1,21 @@
+## 2.0.0
+
+- **BREAKING:** licença e cobrança removidas. O plugin não valida mais licença nem faz nenhuma chamada HTTP aos servidores da JY Labtech; as operações chamam o SDK da Rede direto.
+  - Removido `RedeTech.configureLicence({licenceKey, licenceInternalKey})` e o método de canal `RedeConfigureLicence`.
+  - Removido o getter `RedeTech.isLicenceConfigured`.
+  - Removida a constante `licenceCheck` (e seu export em `package:rede_payment_tech/rede_payment_tech.dart`).
+  - Removidos os códigos de erro `LICENCE_ERROR` e `LICENCE_NOT_CONFIGURED`: nenhuma operação exige configuração prévia.
+  - Nativo: removidas as classes `CheckLicenceTech`, `CheckLicenceEntity`, `LicenceConfig`, `LicenceRules`, `LicenceProvider`, `LicenceResult`, `EncryptedLicenceStorage`, `LicenceStorage`, `LicenceNetwork` e `LicenceClock`, o gate de licença por operação e a dependência `androidx.security:security-crypto`.
+- **BREAKING:** removido o parâmetro obsoleto `pin` de `Auth.authWithOnlyPin`, `authWithChangePin` e `authWithValueAndPin`; `amount` passa a ser `required int` (o `ArgumentError` de `amount`/`pin` ausentes ou diferentes deixa de existir).
+- **BREAKING / correção:** pagamento ou estorno cancelado sem dados da transação agora falha com `PlatformException` código `CANCELED` (mensagem "Operação de pagamento cancelada" / "Operação de reversão cancelada"). Antes o nativo respondia um texto puro e `RedeTransactionResponse.fromJson` lançava `FormatException`.
+- Projeto open source sob a licença MIT (`LICENSE`), mantendo o copyright original de Gabuldev. O `smartrede_sdk.aar` é da Rede e não é coberto pela MIT.
+- O código-fonte nativo (`android/native`) passa a ser publicado no pacote.
+- `package:rede_payment_tech/rede_payment_tech.dart` agora exporta `RedePaymentType`, `RedeTransactionResponse`, `RedePrintResponse` e `RedeAuthResponse` (os imports antigos continuam funcionando).
+- README reescrito, com referência da API, exemplos por operação, tabela de erros e guia de migração.
+- Example sem chave de licença (`--dart-define=LICENCE_KEY` não é mais necessário), com todas as operações e o resultado na tela.
+- Testes: removidos os de licença; novos testes Dart de todos os métodos (incluindo `CANCELED`) e testes JVM do plugin nativo sem gate e do retorno cancelado sem dados. Binários `android/libs/rede_payment_tech-native.{aar,jar}` regenerados.
+- pubspec: descrição em inglês, `issue_tracker` e `topics`.
+
 ## 1.1.1
 
 - Primeira publicação no pub.dev: licença proprietária da JYLabtech (`LICENSE`), `homepage`/`repository` apontando para o repositório do plugin e `.pubignore` (o pacote leva só o binário nativo de `android/libs`, sem o código-fonte de `android/native`).

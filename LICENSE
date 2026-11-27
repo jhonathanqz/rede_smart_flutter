@@ -1,111 +1,22 @@
-PROPRIETARY LICENSE
+MIT License
 
-Copyright (c) 2026 JYLabtech. All Rights Reserved.
+Copyright (c) 2023 Gabuldev
+Copyright (c) 2026 JY Labtech
 
-TERMS AND CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-This software and associated documentation files (the "Software") are the 
-proprietary and confidential property of JYLabtech. The Software is protected 
-by copyright laws and international copyright treaties, as well as other 
-intellectual property laws and treaties.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-1. RESTRICTIONS
-
-You are NOT permitted to:
-
-   a) Copy, reproduce, or duplicate the Software, in whole or in part, in any 
-      form or by any means, electronic or mechanical, including photocopying, 
-      recording, or by any information storage and retrieval system, without 
-      prior written permission from JYLabtech.
-
-   b) Modify, adapt, alter, translate, or create derivative works based upon 
-      the Software, in whole or in part, without prior written permission from 
-      JYLabtech.
-
-   c) Reverse engineer, decompile, disassemble, or otherwise attempt to derive 
-      the source code of the Software, or any part thereof.
-
-   d) Remove, alter, or obscure any proprietary notices, labels, or marks on 
-      the Software or any copies thereof.
-
-   e) Sell, rent, lease, sublicense, distribute, or otherwise transfer the 
-      Software, or any portion thereof, to any third party without prior 
-      written permission from JYLabtech.
-
-   f) Use the Software in any manner that could damage, disable, overburden, 
-      or impair any JYLabtech server, or the network(s) connected to any 
-      JYLabtech server.
-
-   g) Use the Software for any purpose that is unlawful or prohibited by this 
-      Agreement, or to solicit the performance of any illegal activity or other 
-      activity which infringes the rights of JYLabtech or others.
-
-2. OWNERSHIP
-
-The Software is licensed, not sold. JYLabtech retains all rights, title, and 
-interest in and to the Software, including all intellectual property rights 
-therein. The Software is protected by copyright laws and international 
-copyright treaties, as well as other intellectual property laws and treaties.
-
-3. LIMITED LICENSE
-
-Subject to your compliance with the terms and conditions of this Agreement, 
-JYLabtech grants you a limited, non-exclusive, non-transferable, revocable 
-license to use the Software solely for your internal business purposes, in 
-accordance with the terms of this Agreement.
-
-4. TERMINATION
-
-This license is effective until terminated. Your rights under this license will 
-terminate automatically without notice from JYLabtech if you fail to comply 
-with any term(s) of this Agreement. Upon termination of the license, you shall 
-cease all use of the Software and destroy all copies, full or partial, of the 
-Software.
-
-5. NO WARRANTY
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-JYLABTECH BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
-ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-6. CONFIDENTIALITY
-
-The Software contains proprietary and confidential information. You agree to 
-maintain the confidentiality of the Software and to use the same degree of 
-care to protect the Software as you use to protect your own confidential 
-information, but in no event less than reasonable care.
-
-7. INDEMNIFICATION
-
-You agree to indemnify, defend, and hold harmless JYLabtech and its officers, 
-directors, employees, agents, and affiliates from and against any and all 
-claims, damages, losses, liabilities, costs, and expenses (including reasonable 
-attorneys' fees) arising out of or relating to your use of the Software, your 
-violation of this Agreement, or your violation of any rights of another.
-
-8. GOVERNING LAW
-
-This Agreement shall be governed by and construed in accordance with the laws 
-of Brazil, without regard to its conflict of law provisions. Any disputes 
-arising under or in connection with this Agreement shall be subject to the 
-exclusive jurisdiction of the courts of Brazil.
-
-9. ENTIRE AGREEMENT
-
-This Agreement constitutes the entire agreement between you and JYLabtech 
-concerning the Software and supersedes all prior agreements, understandings, 
-negotiations, and discussions, whether oral or written, relating to the 
-subject matter hereof.
-
-10. CONTACT INFORMATION
-
-For licensing inquiries, please contact:
-JYLabtech
-Website: https://portal.jylabtech.com.br
-
-By using the Software, you acknowledge that you have read this Agreement, 
-understand it, and agree to be bound by its terms and conditions. If you do 
-not agree to the terms of this Agreement, do not use the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

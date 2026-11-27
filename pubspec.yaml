@@ -1,8 +1,15 @@
 name: rede_payment_tech
-description: "Integre o Flutter com maquinas smarts da Laranjinha, utilizando o SDK do REDE. Rápido e fácil."
-version: 1.1.1
+description: "Flutter plugin for Rede Android smart POS terminals using the Rede Smart SDK: credit, debit, voucher, PIX, installments, reversal, reprint and PIN auth."
+version: 2.0.0
 homepage: https://github.com/jhonathanqz/rede_smart_flutter
 repository: https://github.com/jhonathanqz/rede_smart_flutter
+issue_tracker: https://github.com/jhonathanqz/rede_smart_flutter/issues
+topics:
+  - payment
+  - pos
+  - android
+  - flutter-plugin
+  - brazil
 
 environment:
   sdk: ^3.5.4

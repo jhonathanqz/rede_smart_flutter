@@ -4,14 +4,14 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'rede_payment_tech'
-  s.version          = '0.0.1'
-  s.summary          = 'A new Flutter plugin project.'
+  s.version          = '2.0.0'
+  s.summary          = 'Rede Smart SDK plugin (Android only; iOS is a stub).'
   s.description      = <<-DESC
-A new Flutter plugin project.
+Flutter plugin for Rede smart POS terminals. Only Android is supported; iOS is a stub.
                        DESC
-  s.homepage         = 'http://example.com'
+  s.homepage         = 'https://github.com/jhonathanqz/rede_smart_flutter'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
+  s.author           = { 'JY Labtech' => 'https://jylabtech.com.br' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'

@@ -16,7 +16,7 @@ public enum ActivityResultOutcome {
     TRANSACTION_RESULT,
     /** Pagamento/estorno cancelado com dados da transação. */
     TRANSACTION_CANCELLED,
-    /** Pagamento/estorno cancelado sem dados (resposta em texto, como antes). */
+    /** Pagamento/estorno cancelado sem dados: responde erro CANCELED. */
     TRANSACTION_CANCELLED_NO_DATA,
     /** Pagamento/estorno com RESULT_OK mas sem dados: antes ficava sem resposta. */
     TRANSACTION_NO_DATA,

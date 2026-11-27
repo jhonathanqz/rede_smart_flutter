@@ -21,8 +21,8 @@ import org.junit.Test;
 
 /**
  * Testes JVM da classe ponte {@link RedeTechFlutterPlugin}: ela precisa repassar tudo para o
- * {@code RedePaymentTechNativePlugin} (binário em android/libs) sem chamar o SDK da Rede quando
- * não há licença/Activity.
+ * {@code RedePaymentTechNativePlugin} (binário em android/libs) e responder com erro, sem chamar o
+ * SDK da Rede, quando não há Activity.
  *
  * <p>Rode com {@code cd example/android && ./gradlew :rede_payment_tech:testDebugUnitTest}.
  * Sem Mockito: o {@link MethodChannel.Result} é um fake que só grava a resposta.
@@ -66,30 +66,6 @@ public class RedeTechFlutterPluginTest {
   }
 
   @Test
-  public void configureLicence_withoutLicenceKey_isDelegatedAndReturnsInvalidArgument() {
-    RedeTechFlutterPlugin plugin = new RedeTechFlutterPlugin();
-    RecordingResult result = new RecordingResult();
-
-    plugin.onMethodCall(new MethodCall("RedeConfigureLicence", new HashMap<String, Object>()), result);
-
-    assertEquals("error", result.kind);
-    assertEquals("INVALID_ARGUMENT", result.errorCode);
-  }
-
-  @Test
-  public void configureLicence_withBlankLicenceKey_returnsInvalidArgument() {
-    RedeTechFlutterPlugin plugin = new RedeTechFlutterPlugin();
-    RecordingResult result = new RecordingResult();
-    Map<String, Object> args = new HashMap<>();
-    args.put("licenceKey", "   ");
-
-    plugin.onMethodCall(new MethodCall("RedeConfigureLicence", args), result);
-
-    assertEquals("error", result.kind);
-    assertEquals("INVALID_ARGUMENT", result.errorCode);
-  }
-
-  @Test
   public void businessMethod_withoutActivity_isRejectedBeforeReachingTheSdk() {
     RedeTechFlutterPlugin plugin = new RedeTechFlutterPlugin();
     RecordingResult result = new RecordingResult();
@@ -112,6 +88,29 @@ public class RedeTechFlutterPluginTest {
     assertEquals("error", result.kind);
     assertEquals("ACTIVITY_NOT_ATTACHED", result.errorCode);
     assertNull(result.value);
+  }
+
+  @Test
+  public void everyBusinessMethod_withoutActivity_isRejectedWithoutAnyPreviousConfiguration() {
+    String[] methods = {
+        "PaymentCredit", "PaymentDebit", "PaymentVoucher", "PaymentPix",
+        "PaymentCreditParcIssuer", "PaymentCreditParcCustomer", "RedeReversal", "RedeReprint",
+        "AuthOnlyPin", "AuthChangePin", "AuthValueAndPin",
+        "POSIMEI", "POSSerialNumber", "POSSimSerialNumber",
+    };
+    for (String method : methods) {
+      RedeTechFlutterPlugin plugin = new RedeTechFlutterPlugin();
+      RecordingResult result = new RecordingResult();
+      Map<String, Object> args = new HashMap<>();
+      args.put("amount", 1000);
+      args.put("installment", 2);
+      args.put("description", "d");
+
+      plugin.onMethodCall(new MethodCall(method, args), result);
+
+      assertEquals(method, "error", result.kind);
+      assertEquals(method, "ACTIVITY_NOT_ATTACHED", result.errorCode);
+    }
   }
 
   @Test
